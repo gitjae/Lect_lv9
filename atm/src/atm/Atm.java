@@ -7,9 +7,9 @@ public class Atm {
 	
 	private UserManager userManager;
 	private AccountManager accountManager;
-	private User nowUser;
+	private FileManager fileManager;
 	
-	private Scanner scan;
+	public static Scanner scan;
 	
 	
 	private final int MEMMNG = 1;
@@ -22,6 +22,14 @@ public class Atm {
 	private final int LOGIN = 3;
 	private final int LOGOUT = 4;
 	
+	private final int INQUIRY = 3;
+	
+	private final int DEPOSIT = 1; 
+	private final int WITHDRAW = 2;
+	private final int REMIT = 3;
+	
+	private final int SAVE = 1;
+	private final int LOAD = 2;
 	
 	public Atm(String brandName) {
 		this.brandName = brandName;
@@ -30,6 +38,7 @@ public class Atm {
 	private void init() {
 		userManager = UserManager.getInstance();
 		accountManager = AccountManager.getInstance();
+		fileManager = FileManager.getInstance();
 		scan = new Scanner(System.in);
 	}
 	
@@ -37,27 +46,52 @@ public class Atm {
 		init();
 		while (true) {
 			printMenu();
-			System.out.println(userManager);
-			System.out.println(accountManager);
+			String data = userManager.toString() + "\n";
+			data+= accountManager.toString();
+			System.out.println(data);
+			//System.out.println(userManager);
+			//System.out.println(accountManager);
 			int menu = inputNumber();
 			if(menu == MEMMNG) {
 				printMemMng();
 				int memMenu = inputNumber();
 				if (memMenu == JOIN) {
-					join();
+					userManager.join();
 				}else if (memMenu == LEAVE) {
-					leave();
+					userManager.leave();
 				}else if (memMenu == LOGIN) {
-					logIn();
+					userManager.logIn();
 				}else if (memMenu == LOGOUT) {
-					logOut();
+					userManager.logOut();
 				}
 			}else if (menu == ACCMNG) {
-				
+				printAccMng();
+				int accMenu = inputNumber();
+				if(accMenu==JOIN) {
+					accountManager.joinAccount(userManager.getNowUser());
+				}else if (accMenu==LEAVE) {
+					accountManager.leaveAccount(userManager.getNowUser());
+				}else if (accMenu==INQUIRY) {
+					accountManager.inquiry(userManager.getNowUser());
+				}
 			}else if (menu == BANKSVC) {
-				
+				printBankSvc();
+				int bankMenu = inputNumber();
+				if(bankMenu == DEPOSIT) {
+					accountManager.deposit();
+				}else if (bankMenu == WITHDRAW) {
+					accountManager.withdraw(userManager.getNowUser());
+				}else if (bankMenu == REMIT) {
+					accountManager.remit(userManager.getNowUser());
+				}
 			}else if (menu == FILEMNG) {
-				
+				printFileMng();
+				int fileMenu = inputNumber();
+				if(fileMenu == SAVE) {
+					fileManager.save();
+				}else if (fileMenu == LOAD) {
+					fileManager.load();
+				}
 			}
 		}
 	}
@@ -69,7 +103,7 @@ public class Atm {
 		System.out.println("[4]파일처리");
 	}
 	
-	private int inputNumber() {
+	public static int inputNumber() {
 		System.out.print("입력 : ");
 		return scan.nextInt();
 	}
@@ -81,80 +115,26 @@ public class Atm {
 		System.out.println("[4]로그아웃");
 	}
 	
-	private String inputString() {
+	
+	public static String inputString() {
 		System.out.print("입력 : ");
 		return scan.next();
 	}
-	
-	private void join() {
-		System.out.print("id ");
-		String id = inputString();
-		if(!dupId(id)) {
-			System.out.print("pw : ");
-			String pw = inputString();
-			System.out.print("name : ");
-			String name = inputString();
-			Account acc = new Account();
-			
-			User user = new User(id, pw, name, acc);
-			
-			userManager.join(user);
-			accountManager.join(acc);
-			
-			System.out.println("가입 성공");
-		}else {
-			System.out.println("중복된 아이디");
-		}
+
+	private void printAccMng() {
+		System.out.println("[1]계약");
+		System.out.println("[2]철회");
+		System.out.println("[3]조회");
 	}
 	
-	private boolean dupId(String id) {
-		if(userManager.getList()!=null) {
-			for(User user : userManager.getList()) {
-				if(user.getId().equals(id)) {
-					return true;
-				}
-			}
-		}
-		return false;
+	private void printBankSvc() {
+		System.out.println("[1]입금");
+		System.out.println("[2]출금");
+		System.out.println("[3]이체");
 	}
 	
-	private void leave() {
-		if(nowUser!=null) {
-			System.out.print("pw : ");
-			String pw = inputString();
-			if(nowUser.getPw().equals(pw)) {
-				userManager.leave(nowUser);
-				accountManager.leave(nowUser.getAccount());
-				System.out.println("탈퇴 성공");
-				nowUser = null;
-			}
-		}else {
-			System.out.println("로그인 필요");
-		}
-	}
-	
-	private void logIn() {
-		if(nowUser==null) {
-			System.out.print("id : ");
-			String id = inputString();
-			System.out.print("pw : ");
-			String pw = inputString();
-			
-			for(User user : userManager.getList()) {
-				if(user.getId().equals(id) && user.getPw().equals(pw)) {
-					this.nowUser = user;
-				}
-			}
-		}else {
-			System.out.println("이미 로그인 했습니다.");
-		}
-	}
-	
-	private void logOut() {
-		if(nowUser!=null) {
-			nowUser=null;
-		}else {
-			System.out.println("로그인 필요");
-		}
+	private void printFileMng() {
+		System.out.println("[1]세이브");
+		System.out.println("[2]로드");
 	}
 }
